@@ -2,4 +2,5 @@
 .build
 *~
 Package.resolved
+.swiftpm
 
