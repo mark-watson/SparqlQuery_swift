@@ -207,24 +207,25 @@ public extension Storage {
         })
     }
 
-    func load<T: Codable>(forKey key: String, as: T.Type, withExpiry expiry: Expiry = .never) throws -> T {
-        func loadFromDisk<T: Codable>(forKey key: String, as: T.Type) throws -> T {
-            let data = try Data(contentsOf: fileUrl(forKey: key))
-            let decoder = options.decoder
+func load<T: Codable>(forKey key: String, as: T.Type, withExpiry expiry: Expiry = .never) throws -> T {
+    // Remove the generic parameter from inner function since we can use T from outer scope
+    func loadFromDisk(forKey key: String, as: T.Type) throws -> T {
+        let data = try Data(contentsOf: fileUrl(forKey: key))
+        let decoder = options.decoder
 
-            do {
-                let object = try decoder.decode(T.self, from: data)
-                return object
-            } catch {
-                let typeWrapper = try decoder.decode(TypeWrapper<T>.self, from: data)
-                return typeWrapper.object
-            }
+        do {
+            let object = try decoder.decode(T.self, from: data)
+            return object
+        } catch {
+            let typeWrapper = try decoder.decode(TypeWrapper<T>.self, from: data)
+            return typeWrapper.object
         }
-
-        return try commonLoad(forKey: key, withExpiry: expiry, fromData: { data in
-            return try loadFromDisk(forKey: key, as: T.self)
-        })
     }
+
+    return try commonLoad(forKey: key, withExpiry: expiry, fromData: { data in
+        return try loadFromDisk(forKey: key, as: T.self)
+    })
+  }
 }
 
 public extension Storage {
